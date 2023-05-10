@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'firstApp/style.css' %}">
+<html lang="en">
+<head>
+  <title>Quantum Computation</title>
+  <style>
+    body {
+      text-align: center;
+    }
+
+  </style>
+</head>
+<body>
+
+<img src="{% static 'firstApp/qiskit_logo.png' %}" style="float:right;width:42px;height:42px;" alt="My image">
+<h1>Quantum Computation Project</h1>
+<p>Welcome, {{name}}</p>
+<p>Tool for simulating quantum circuits using Qiskit</p>
+<button type="button" onclick="location.href='{% url 'tool' %}'">Get Started</button>
+<button type="button" onclick="location.href='{% url 'signup' %}'">Sign up</button>
+<button type="button" onclick="location.href='{% url 'login' %}'">Log in</button>
+<button type="button" onclick="location.href='{% url 'logout' %}'">Logout</button>
+
+
+</body>
+</html>

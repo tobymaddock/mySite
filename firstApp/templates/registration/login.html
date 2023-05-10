@@ -1,0 +1,15 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'firstApp/style.css' %}">
+
+{% block content %}
+<img src="{% static 'firstApp/qiskit_logo.png' %}" style="float:right;width:42px;height:42px;" alt="My image">
+
+<h1>Log in!</h1>
+<form method="post" action="{% url 'login' %}">
+{% csrf_token %}
+<label for="username">Username:</label>
+<input type="text" name="username" placeholder="Username"><label for="password">Password:</label>
+<input type="password" name="password" placeholder="Password">
+<input type="submit" name="" value="Login">
+</form>
+{% endblock %}

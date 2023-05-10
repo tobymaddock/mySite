@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'firstApp/style.css' %}">
+<html lang="en">
+<head>
+  <title>Quantum Computation</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/9.5.0/math.min.js"></script>
+  <style>
+    body {
+      text-align: center;
+    }
+
+    nav {
+      text-align: center;
+    }
+
+    #div1,#div2 {
+      margin: auto;
+      border: 1px solid black;
+      width: 500px;
+      height: 70px;
+
+    }
+    #trash{
+    position:fixed;
+    right: 10px;
+    bottom: 10px;
+    }
+    #canvas{
+      margin: auto;
+      border: 1px solid black;
+      width: 300px;
+      height: 300px;
+    }
+  </style>
+  <script>
+
+  var matrix = [[1,0], [0, 1]];
+  // pauli matrices
+  const I = [[1,0], [0, 1]];
+  const X = [[0,1], [1, 0]];
+  const Y = [[0,1], [1, 0]];
+  const Z = [[1,0], [0, -1]];
+
+  // hadamard gate
+  var H = [[1,1], [1, -1]];
+
+  // to keep track of the number of rails
+  var railNumber = 1;
+
+  // starting array for the circuit config
+  let circuitConfig = [];
+  circuitConfig.push([I]);
+
+function alterDisplayMatrix(){
+      var alteredMatrix = "";
+      for(var i = 0;i<matrix.length;i++)
+      {
+      alteredMatrix += '&nbsp;&nbsp' + matrix[i].join(' ') + '<br/>';
+      }
+      document.getElementById("myMatrix").innerHTML = alteredMatrix;
+
+}
+
+function matricesAreEqual(matrix1, matrix2) {
+// there is obviously a smarter way of doing this, but works for now
+  if (matrix1.length !== matrix2.length) return false;
+  for (let i = 0; i < matrix1.length; i++) {
+    if (matrix1[i].length !== matrix2[i].length) return false;
+    for (let j = 0; j < matrix1[i].length; j++) {
+      if (matrix1[i][j] !== matrix2[i][j]) return false;
+    }
+  }
+  return true;
+}
+
+function computeNewMatrix(){
+      totalMatrix = [[1]];
+      for (element of circuitConfig){
+        combinedRow = I;
+        for (secondElement of element){
+          combinedRow = math.multiply(combinedRow, secondElement);
+        }
+        totalMatrix = math.kron(totalMatrix, combinedRow);
+      }
+      matrix = totalMatrix;
+      alterDisplayMatrix();
+}
+
+function startingMatrix() {
+      alterDisplayMatrix();
+    }
+
+function allowDrop(ev) {
+  ev.preventDefault();
+}
+
+function drag(ev) {
+  ev.dataTransfer.setData("drag_obj", ev.target.id);
+}
+
+function drop(ev) {
+  ev.preventDefault();
+  var data = ev.dataTransfer.getData("drag_obj");
+  ev.target.appendChild(document.getElementById(data).cloneNode(true));
+  updateCircuit();
+  rowNumber = parseInt(ev.target.id.slice(-1));
+  updateCircuitConfig(document.getElementById(data), rowNumber);
+  computeNewMatrix();
+}
+
+function updateCircuitConfig(element, row) {
+  var M = [[1,0], [0, 1]];
+
+  if (element.className == 'H_gate'){
+  M = H;
+  }
+  if (element.className == 'X_gate'){
+  M = X;
+  }
+  if (element.className == 'Y_gate'){
+  M = Y;
+  }
+  if (element.className == 'Z_gate'){
+  M = Z;
+  }
+  //check if row is occupied, then push/set element to the dragged matrix
+  if (matricesAreEqual(circuitConfig[row - 1][0], I)){
+    circuitConfig[row - 1][0] = M;
+  }
+  else{
+    circuitConfig[row - 1].push(M);
+  }
+
+}
+
+function addRail() {
+  var mainCircuit = document.getElementById("mainCircuit");
+  const container = document.getElementById("container");
+  // need to fix this
+  while (container.lastChild.lastChild) {
+    container.lastChild.removeChild(container.lastChild.lastChild);
+  }
+  circuitConfig.push([I]);
+  computeNewMatrix();
+  mainCircuit.appendChild(container.cloneNode(true));
+  railNumber += 1;
+  mainCircuit.lastChild.id = 'railNumber'
+}
+
+function deleteGate(ev) {
+  ev.preventDefault();
+  var data = ev.dataTransfer.getData("drag_obj");
+  document.getElementById(data).remove();
+}
+
+function deleteRail() {
+  var mainCircuit = document.getElementById("mainCircuit");
+  mainCircuit.removeChild(mainCircuit.childNodes[1]);
+  railNumber -= 1;
+}
+
+function updateCircuit() {
+  var canvas = document.getElementById("canvas");
+  document.getElementById("mainCircuit");
+  var text = document.createTextNode("This just got added");
+  canvas.appendChild(text);
+
+}
+
+</script>
+</head>
+<body onload = "startingMatrix()">
+
+<img src="{% static 'firstApp/qiskit_logo.png' %}" style="float:right;width:42px;height:42px;" alt="My image">
+<h1>Quantum Computation Project</h1>
+
+<p>Start adding qubits to begin</p>
+<div class="nav">
+<button type="button" onclick="location.href='{% url 'home' %}'">Home</button>
+<button type="button" onclick="location.href='{% url 'signup' %}'">Sign up</button>
+<button type="button" onclick="location.href='{% url 'login' %}'">Log in</button>
+</div>
+
+<img src="{% static 'firstApp/q_circuit.png' %}" style="width:500px;" alt="My image">
+
+<p>Add rails (more qubits) to begin:</p>
+<br>
+<button type="button" onclick="addRail()">Add rail</button>
+<button type="button" onclick="deleteRail()">Delete rail</button>
+
+<div id="mainCircuit">
+<div id="container">
+<div id="div1" ondrop="drop(event)" ondragover="allowDrop(event)">
+</div>
+</div>
+</div>
+
+<br>
+<img class="H_gate" id="drag1" src="{% static 'firstApp/H_draw.png' %}" draggable="true" ondragstart="drag(event)"  height="69">
+<img class="X_gate" id="drag2" src="{% static 'firstApp/X_draw.png' %}" draggable="true" ondragstart="drag(event)"  height="69">
+<img class="Y_gate" id="drag3" src="{% static 'firstApp/Y_draw.png' %}" draggable="true" ondragstart="drag(event)"  height="69">
+<img class="Z_gate" id="drag4" src="{% static 'firstApp/Z_draw.png' %}" draggable="true" ondragstart="drag(event)"  height="69">
+<img src="{% static 'firstApp/trash.png' %}" ondrop="deleteGate(event)" ondragover="allowDrop(event)" height="50">
+</body>
+<br>
+<p>Associated matrix:</p>
+
+<p id ="myMatrix">
+</p>
+
+<br>
+<button type="button"> Compute </button>
+<div id="canvas">
+</div>
+
+{% block content %}
+<p> Ello </p>
+{% endblock %}
+</html>

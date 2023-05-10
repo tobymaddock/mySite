@@ -1,0 +1,10 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'firstApp/style.css' %}">
+<img src="{% static 'firstApp/qiskit_logo.png' %}" style="float:right;width:42px;height:42px;" alt="My image">
+
+<h2>Sign up</h2>
+<form class="signup" method="post">
+   {% csrf_token %}
+   {{ form.as_p }}
+   <input type="submit" value="Signup"/>
+</form>
