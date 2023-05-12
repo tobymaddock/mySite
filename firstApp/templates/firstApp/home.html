@@ -19,8 +19,11 @@
 <p>Welcome, {{name}}</p>
 <p>Tool for simulating quantum circuits using Qiskit</p>
 <button type="button" onclick="location.href='{% url 'tool' %}'">Get Started</button>
+  {% if not user.is_authenticated %}
 <button type="button" onclick="location.href='{% url 'signup' %}'">Sign up</button>
 <button type="button" onclick="location.href='{% url 'login' %}'">Log in</button>
+  {% endif %}
+
 <button type="button" onclick="location.href='{% url 'logout' %}'">Logout</button>
 
 

@@ -16,23 +16,38 @@
     }
 
     #div1,#div2 {
-      margin: auto;
+      position: absolute;
       border: 1px solid black;
-      width: 500px;
-      height: 70px;
+      width :400px;
+      height:400px;
+      margin:0px auto;
+      left:0;
+      right:0;
 
     }
+
+    #canvasContainer{
+      height:400px;
+    }
+
+    #foregroundElement {
+      left:0;
+      right:0;
+      margin-left: auto;
+      margin-right: auto;
+      position: absolute;
+      width :400px;
+      height:400px;
+      // z index is higher
+      z-index : 1;
+      margin:0px auto;
+      left:0;
+      right:0;
+    }
+
     #trash{
-    position:fixed;
-    right: 10px;
-    bottom: 10px;
     }
-    #canvas{
-      margin: auto;
-      border: 1px solid black;
-      width: 300px;
-      height: 300px;
-    }
+
   </style>
   <script>
 
@@ -53,13 +68,42 @@
   let circuitConfig = [];
   circuitConfig.push([I]);
 
+  // dimensions for line drawing stuff
+  const dropArea = document.getElementById("div1");
+  const ctx = dropArea.getContext("2d");
+
+function draw() {
+    const canvas = document.querySelector('#div1');
+    const context = canvas.getContext('2d');
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    if (!canvas.getContext) {
+        return;
+    }
+    const ctx = canvas.getContext('2d');
+    // set line stroke and line width
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 1;
+    var width = canvas.width;
+    var height = canvas.height;
+    // draw a red line
+    for (var i = 0; i < railNumber; i ++){
+      ctx.beginPath();
+      ctx.moveTo(0/5, (i + 1) * height/(railNumber + 1));
+      ctx.lineTo(width +0.5, (i + 1) * height/(railNumber + 1));
+      ctx.stroke();
+    }
+}
+
+
+
+
 function alterDisplayMatrix(){
-      var alteredMatrix = "";
-      for(var i = 0;i<matrix.length;i++)
-      {
-      alteredMatrix += '&nbsp;&nbsp' + matrix[i].join(' ') + '<br/>';
-      }
-      document.getElementById("myMatrix").innerHTML = alteredMatrix;
+  var alteredMatrix = "";
+  for(var i = 0;i<matrix.length;i++)
+  {
+    alteredMatrix += '&nbsp;&nbsp' + matrix[i].join(' ') + '<br/>';
+  }
+  document.getElementById("myMatrix").innerHTML = alteredMatrix;
 
 }
 
@@ -90,6 +134,7 @@ function computeNewMatrix(){
 
 function startingMatrix() {
       alterDisplayMatrix();
+      draw();
     }
 
 function allowDrop(ev) {
@@ -100,10 +145,12 @@ function drag(ev) {
   ev.dataTransfer.setData("drag_obj", ev.target.id);
 }
 
+
+
 function drop(ev) {
   ev.preventDefault();
   var data = ev.dataTransfer.getData("drag_obj");
-  ev.target.appendChild(document.getElementById(data).cloneNode(true));
+  document.getElementById("foregroundElement").appendChild(document.getElementById(data).cloneNode(true));
   updateCircuit();
   rowNumber = parseInt(ev.target.id.slice(-1));
   updateCircuitConfig(document.getElementById(data), rowNumber);
@@ -136,17 +183,10 @@ function updateCircuitConfig(element, row) {
 }
 
 function addRail() {
-  var mainCircuit = document.getElementById("mainCircuit");
-  const container = document.getElementById("container");
-  // need to fix this
-  while (container.lastChild.lastChild) {
-    container.lastChild.removeChild(container.lastChild.lastChild);
-  }
   circuitConfig.push([I]);
   computeNewMatrix();
-  mainCircuit.appendChild(container.cloneNode(true));
   railNumber += 1;
-  mainCircuit.lastChild.id = 'railNumber'
+  draw();
 }
 
 function deleteGate(ev) {
@@ -156,9 +196,11 @@ function deleteGate(ev) {
 }
 
 function deleteRail() {
-  var mainCircuit = document.getElementById("mainCircuit");
-  mainCircuit.removeChild(mainCircuit.childNodes[1]);
   railNumber -= 1;
+  draw()
+  circuitConfig.pop();
+  computeNewMatrix();
+
 }
 
 function updateCircuit() {
@@ -179,8 +221,10 @@ function updateCircuit() {
 <p>Start adding qubits to begin</p>
 <div class="nav">
 <button type="button" onclick="location.href='{% url 'home' %}'">Home</button>
+  {% if not user.is_authenticated %}
 <button type="button" onclick="location.href='{% url 'signup' %}'">Sign up</button>
 <button type="button" onclick="location.href='{% url 'login' %}'">Log in</button>
+  {% endif %}
 </div>
 
 <img src="{% static 'firstApp/q_circuit.png' %}" style="width:500px;" alt="My image">
@@ -190,10 +234,10 @@ function updateCircuit() {
 <button type="button" onclick="addRail()">Add rail</button>
 <button type="button" onclick="deleteRail()">Delete rail</button>
 
-<div id="mainCircuit">
-<div id="container">
-<div id="div1" ondrop="drop(event)" ondragover="allowDrop(event)">
-</div>
+<div id="canvasContainer">
+<canvas id="div1" >
+</canvas>
+<div id="foregroundElement" ondrop="drop(event)" ondragover="allowDrop(event)">
 </div>
 </div>
 
@@ -212,7 +256,7 @@ function updateCircuit() {
 
 <br>
 <button type="button"> Compute </button>
-<div id="canvas">
+<div id="canvas" height="500" width="500">
 </div>
 
 {% block content %}
